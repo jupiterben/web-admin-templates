@@ -1,14 +1,10 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Button, theme } from "antd";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 const { Header, Sider, Content } = Layout;
 
 export type LogoConfig = {
@@ -17,28 +13,61 @@ export type LogoConfig = {
   style: string;
 }
 
-export type MainLayoutConfig = {
+export type MainLayoutProps = {
   logo: LogoConfig;
   logo_collapsed: LogoConfig;
+  menuItems?: MenuItem[]
+  defaultPath: string;
+  children?: ReactNode;
 };
+
+export type MenuItem = {
+  key: string;
+  icon?: ReactNode;
+  label: string;
+  children?: MenuItem[]
+}
 
 
 const SideBarLogo: React.FC<LogoConfig> = (props: LogoConfig) => {
   return (<div className={props.style}>
-    <Link to='/' className='logo-url'>
+    <Link to='/'>
       {<img alt='' src={props.image} width={props.size} />}
     </Link>
   </div>)
 }
 
 
-const LayoutStyle = {
-  height: "100vh"
+type SideBarCollapseButtonProps = { collapsed: boolean, setCollapsed: React.Dispatch<React.SetStateAction<boolean>> }
+const SideBarCollapseButton: React.FC<SideBarCollapseButtonProps> = (props) => {
+  const { collapsed, setCollapsed } = props;
+  return (<Button
+    type="text"
+    icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+    onClick={() => setCollapsed(!collapsed)}
+    style={{
+      fontSize: "16px",
+      width: 64,
+      height: 64,
+    }}
+  />)
 }
 
-export const MainLayout: React.FC<MainLayoutConfig> = (props: MainLayoutConfig) => {
+
+export const MainLayout: React.FC<MainLayoutProps> = (props: MainLayoutProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const { token: { colorBgContainer } } = theme.useToken();
+  const navigate = useNavigate();
+
+  const ContentStyle = {
+    margin: "24px 16px",
+    padding: 24,
+    minHeight: 280,
+    background: colorBgContainer,
+  }
+  const LayoutStyle = {
+    height: "100vh"
+  }
 
   return (
     <Layout style={LayoutStyle}>
@@ -47,48 +76,19 @@ export const MainLayout: React.FC<MainLayoutConfig> = (props: MainLayoutConfig) 
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["1"]}
-          items={[
-            {
-              key: "1",
-              icon: <UserOutlined />,
-              label: "nav 1",
-            },
-            {
-              key: "2",
-              icon: <VideoCameraOutlined />,
-              label: "nav 2",
-            },
-            {
-              key: "3",
-              icon: <UploadOutlined />,
-              label: "nav 3",
-            },
-          ]}
+          onClick={({ key }) => {
+            navigate(key)
+          }}
+          defaultSelectedKeys={[props.defaultPath]}
+          items={props.menuItems}
         />
       </Sider>
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: "16px",
-              width: 64,
-              height: 64,
-            }}
-          />
+          <SideBarCollapseButton {...{ collapsed, setCollapsed }} />
         </Header>
-        <Content
-          style={{
-            margin: "24px 16px",
-            padding: 24,
-            minHeight: 280,
-            background: colorBgContainer,
-          }}
-        >
-          Content
+        <Content style={ContentStyle}>
+          {props.children}
         </Content>
       </Layout>
     </Layout>

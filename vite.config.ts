@@ -1,7 +1,64 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import * as path from 'path';
+import { defineConfig, loadEnv, PluginOption } from 'vite';
+import react from '@vitejs/plugin-react';
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()]
-})
+export default defineConfig(({ command, mode }) => {
+  const root = process.cwd();
+
+  const env = loadEnv(mode, root);
+  const { VITE_APP_PORT } = env;
+
+  const isBuild = command === 'build';
+
+  // vite 插件
+  const vitePlugins: (PluginOption | PluginOption[])[] = [
+    react(),
+    // vite-plugin-svg-icons
+    createSvgIconsPlugin({
+      // Specify the icon folder to be cached
+      iconDirs: [path.resolve(__dirname, './src/assets/iconsvg')],
+      // Specify symbolId format
+      symbolId: 'icon-[name]',
+    }),
+  ];
+
+  return {
+    root,
+    server: {
+      host: true,
+      port: Number(VITE_APP_PORT || 3000),
+      /*
+      proxy: {
+        '/api': {
+          // 用于开发环境下的转发请求
+          // 更多请参考：https://vitejs.dev/config/#server-proxy
+          target: 'https://vitejs.dev/config/#server-proxy',
+          changeOrigin: true,
+        },
+      },
+      */
+    },
+    resolve: {
+      alias: [
+        {
+          find: /^~/,
+          replacement: `${path.resolve(__dirname, './node_modules')}/`,
+        },
+        {
+          find: /@\//,
+          replacement: `${path.resolve(__dirname, './src')}/`,
+        },
+      ],
+    },
+    plugins: vitePlugins,
+    css: {
+      preprocessorOptions: {
+        less: {
+          javascriptEnabled: true,
+        },
+      },
+    },
+  };
+});
