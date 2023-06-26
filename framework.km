@@ -1,0 +1,13 @@
+{
+    "root": {
+        "data": {
+            "id": "ctm8aw8p5ns0",
+            "created": 1687746782619,
+            "text": "Admin-React"
+        },
+        "children": []
+    },
+    "template": "default",
+    "theme": "fresh-blue",
+    "version": "1.4.43"
+}
